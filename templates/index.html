@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>YT Downloader</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════ BASE ═══════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;
+  --surface:rgba(255,255,255,0.05);
+  --surface2:rgba(255,255,255,0.08);
+  --border:rgba(255,255,255,0.10);
+  --border2:rgba(255,255,255,0.18);
+  --glass:rgba(15,15,15,0.55);
+  --glass2:rgba(20,20,20,0.70);
+  --accent:#ff0000;
+  --accent2:#cc0000;
+  --text:#e8e8e8;
+  --text2:#aaa;
+  --text3:#666;
+  --blur:blur(18px) saturate(180%);
+  --radius:14px;
+  --radius2:10px;
+  --shadow:0 8px 32px rgba(0,0,0,0.5);
+  --shadow2:0 2px 12px rgba(0,0,0,0.4);
+  --green:#1db954;
+  --yellow:#f4c20d;
+  --blue:#4285f4;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Roboto',sans-serif;font-size:14px;overflow-x:hidden}
+
+/* ═══════════════════════ SIDEBAR ═══════════════════════ */
+#sidebar{
+  position:fixed;top:0;left:0;height:100%;width:240px;
+  background:var(--glass2);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border-right:1px solid var(--border);
+  z-index:100;display:flex;flex-direction:column;
+  transition:width .25s ease;
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-logo .logo-icon{
+  background:var(--accent);
+  border-radius:8px;padding:4px 7px;
+  color:#fff;font-size:22px;line-height:1;
+  font-weight:900;letter-spacing:-1px;
+}
+.sidebar-logo .logo-text{font-size:18px;font-weight:700;color:#fff}
+.sidebar-logo .logo-sub{font-size:10px;color:var(--text2);letter-spacing:1px;font-weight:500}
+
+.nav-section{padding:12px 0 4px;font-size:10px;font-weight:600;letter-spacing:1.2px;color:var(--text3);padding-left:20px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:14px;
+  padding:11px 20px;cursor:pointer;
+  color:var(--text2);font-size:13.5px;font-weight:500;
+  transition:all .15s;border-radius:0;
+  border-left:3px solid transparent;
+  user-select:none;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface);color:#fff;border-left:3px solid var(--accent)}
+.nav-item .material-icons-round{font-size:20px}
+.nav-badge{
+  margin-left:auto;background:var(--accent);color:#fff;
+  border-radius:20px;padding:1px 7px;font-size:11px;font-weight:600;
+  min-width:20px;text-align:center;
+}
+.sidebar-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border)}
+.sidebar-bottom .btn-sm{width:100%}
+
+/* ═══════════════════════ MAIN ═══════════════════════ */
+#main{margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+
+/* ═══════════════════════ TOPBAR ═══════════════════════ */
+#topbar{
+  position:sticky;top:0;z-index:90;
+  background:var(--glass);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px;
+  padding:10px 24px;
+}
+.topbar-title{font-size:17px;font-weight:600;color:#fff;white-space:nowrap}
+.search-wrap{
+  flex:1;max-width:600px;
+  display:flex;align-items:center;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:24px;padding:0 6px 0 16px;
+  transition:border .2s;
+}
+.search-wrap:focus-within{border-color:var(--accent)}
+.search-wrap input{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-size:14px;padding:8px 4px;
+  font-family:inherit;
+}
+.search-wrap input::placeholder{color:var(--text3)}
+.search-wrap button{
+  background:var(--accent);border:none;
+  border-radius:20px;padding:6px 14px;cursor:pointer;
+  color:#fff;font-size:13px;font-weight:500;
+  display:flex;align-items:center;gap:4px;
+  transition:background .15s;
+}
+.search-wrap button:hover{background:var(--accent2)}
+.search-wrap button .material-icons-round{font-size:17px}
+.topbar-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+
+/* ═══════════════════════ CONTENT ═══════════════════════ */
+#content{padding:24px;flex:1}
+
+/* ═══════════════════════ VIEWS ═══════════════════════ */
+.view{display:none}
+.view.active{display:block}
+
+/* ═══════════════════════ GLASS CARD ═══════════════════════ */
+.glass-card{
+  background:var(--glass);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow2);
+}
+
+/* ═══════════════════════ BUTTONS ═══════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:8px;border:none;
+  cursor:pointer;font-size:13.5px;font-weight:500;
+  font-family:inherit;transition:all .15s;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface);border-color:var(--border2)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{filter:brightness(1.1)}
+.btn-sm{padding:6px 12px;font-size:12.5px;border-radius:7px}
+.btn .material-icons-round{font-size:17px}
+.btn-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text2);cursor:pointer;
+  transition:all .15s;
+}
+.btn-icon:hover{background:var(--surface);color:var(--text)}
+.btn-icon .material-icons-round{font-size:18px}
+.btn-icon.danger:hover{background:rgba(255,0,0,.15);border-color:rgba(255,0,0,.3);color:#ff4444}
+
+/* ═══════════════════════ VIDEO GRID ═══════════════════════ */
+.video-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:18px;margin-top:20px;
+}
+.video-card{
+  background:var(--glass);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+  cursor:pointer;position:relative;
+}
+.video-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--border2);
+  box-shadow:0 12px 40px rgba(0,0,0,0.6);
+}
+.video-card.in-cart{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.video-thumb{position:relative;width:100%;padding-top:56.25%;overflow:hidden}
+.video-thumb img{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  object-fit:cover;transition:transform .3s;
+}
+.video-card:hover .video-thumb img{transform:scale(1.04)}
+.video-thumb .duration{
+  position:absolute;bottom:6px;right:6px;
+  background:rgba(0,0,0,0.85);color:#fff;
+  font-size:11px;font-weight:600;
+  padding:2px 6px;border-radius:4px;
+}
+.video-thumb .cart-overlay{
+  position:absolute;inset:0;
+  background:rgba(255,0,0,0.18);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;
+}
+.video-card.in-cart .cart-overlay{opacity:1}
+.cart-overlay .material-icons-round{font-size:36px;color:#fff}
+.video-info{padding:10px 12px 12px}
+.video-info .title{
+  font-size:13px;font-weight:500;color:var(--text);
+  line-height:1.4;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  margin-bottom:5px;
+}
+.video-info .meta{font-size:11.5px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap}
+.video-card-actions{
+  display:flex;gap:6px;padding:0 12px 12px;
+}
+.video-card-actions .btn{flex:1;justify-content:center;padding:6px 8px}
+
+/* ═══════════════════════ DOWNLOAD PANEL ═══════════════════════ */
+.dl-panel{
+  background:var(--glass2);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px;margin-bottom:24px;
+}
+.dl-panel h2{font-size:16px;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.dl-panel h2 .material-icons-round{color:var(--accent);font-size:20px}
+.form-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:180px}
+.form-group label{font-size:11.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+.form-control{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius2);padding:10px 14px;
+  color:var(--text);font-size:13.5px;font-family:inherit;
+  outline:none;transition:border .15s;
+}
+.form-control:focus{border-color:var(--accent)}
+.form-control::placeholder{color:var(--text3)}
+select.form-control option{background:#1a1a1a}
+.url-group{flex:3!important;min-width:280px}
+
+/* ═══════════════════════ CART SIDEBAR ═══════════════════════ */
+#cart-panel{
+  position:fixed;right:0;top:0;height:100%;width:360px;
+  background:var(--glass2);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border-left:1px solid var(--border);
+  z-index:200;
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  box-shadow:-8px 0 40px rgba(0,0,0,0.5);
+}
+#cart-panel.open{transform:translateX(0)}
+.cart-header{
+  display:flex;align-items:center;gap:10px;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+}
+.cart-header h3{font-size:16px;font-weight:600;flex:1}
+.cart-header .material-icons-round{color:var(--accent)}
+.cart-list{flex:1;overflow-y:auto;padding:12px}
+.cart-list::-webkit-scrollbar{width:4px}
+.cart-list::-webkit-scrollbar-track{background:transparent}
+.cart-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.cart-item{
+  display:flex;gap:10px;align-items:center;
+  padding:10px;border-radius:var(--radius2);
+  background:var(--surface);margin-bottom:8px;
+  border:1px solid var(--border);
+}
+.cart-item img{width:72px;height:40px;object-fit:cover;border-radius:6px;flex-shrink:0}
+.cart-item-info{flex:1;overflow:hidden}
+.cart-item-info .title{font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cart-item-info .ch{font-size:11px;color:var(--text2)}
+.cart-footer{padding:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.cart-settings{display:flex;gap:8px}
+.cart-settings select{flex:1}
+
+/* ═══════════════════════ JOBS ═══════════════════════ */
+.job-card{
+  background:var(--glass);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 20px;margin-bottom:12px;
+}
+.job-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.job-id{font-size:11px;color:var(--text3);font-family:monospace;background:var(--surface);padding:2px 8px;border-radius:4px}
+.job-status{
+  font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;
+}
+.job-status.queued{background:rgba(100,100,100,.3);color:#aaa}
+.job-status.downloading{background:rgba(66,133,244,.2);color:var(--blue)}
+.job-status.processing{background:rgba(244,194,13,.15);color:var(--yellow)}
+.job-status.done{background:rgba(29,185,84,.15);color:var(--green)}
+.job-status.error{background:rgba(255,0,0,.15);color:#ff4444}
+.progress-wrap{background:var(--surface2);border-radius:4px;height:5px;overflow:hidden;margin-bottom:8px}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),#ff6666);border-radius:4px;transition:width .4s}
+.job-meta{display:flex;gap:16px;font-size:12px;color:var(--text2)}
+.job-meta span{display:flex;align-items:center;gap:4px}
+.job-meta .material-icons-round{font-size:14px}
+.job-files{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.job-file{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 10px;background:var(--surface);
+  border-radius:var(--radius2);border:1px solid var(--border);
+}
+.job-file .material-icons-round{color:var(--text2);font-size:18px}
+.job-file .fname{flex:1;font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ═══════════════════════ FILES ═══════════════════════ */
+.file-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.file-row:last-child{border-bottom:none}
+.file-row:hover{background:var(--surface2)}
+.file-row .material-icons-round{font-size:22px;color:var(--text2)}
+.file-row .fname{flex:1;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-row .fsize{font-size:12px;color:var(--text2);white-space:nowrap}
+.file-ext{
+  font-size:10px;font-weight:700;padding:2px 6px;
+  border-radius:4px;text-transform:uppercase;
+}
+.ext-mp4{background:rgba(66,133,244,.2);color:var(--blue)}
+.ext-mkv{background:rgba(244,194,13,.15);color:var(--yellow)}
+.ext-mp3{background:rgba(29,185,84,.15);color:var(--green)}
+.ext-webm{background:rgba(156,66,244,.2);color:#a66fff}
+.ext-default{background:var(--surface2);color:var(--text2)}
+
+/* ═══════════════════════ TABS ═══════════════════════ */
+.tabs{display:flex;gap:2px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content}
+.tab-btn{
+  padding:8px 18px;border-radius:8px;border:none;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text2);background:none;
+  font-family:inherit;transition:all .15s;
+}
+.tab-btn.active{background:var(--glass);color:#fff;box-shadow:var(--shadow2)}
+
+/* ═══════════════════════ CHANNEL HEADER ═══════════════════════ */
+.channel-header{
+  background:var(--glass);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px 24px;
+  display:flex;align-items:center;gap:18px;
+  margin-bottom:22px;
+}
+.ch-avatar{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--surface2);object-fit:cover;
+  border:2px solid var(--border2);flex-shrink:0;
+}
+.ch-avatar-placeholder{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.ch-info h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.ch-info p{font-size:12.5px;color:var(--text2);margin-bottom:10px}
+.ch-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ═══════════════════════ PILL / CHIP ═══════════════════════ */
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 12px;border-radius:20px;
+  background:var(--surface2);border:1px solid var(--border);
+  font-size:12px;color:var(--text2);cursor:pointer;
+  transition:all .15s;user-select:none;
+}
+.chip.active,.chip:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip .material-icons-round{font-size:14px}
+
+/* ═══════════════════════ SECTION HEADER ═══════════════════════ */
+.section-hdr{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:18px;
+}
+.section-hdr h3{font-size:16px;font-weight:600;color:#fff}
+.section-hdr .count{
+  font-size:12px;background:var(--surface2);
+  padding:2px 9px;border-radius:20px;color:var(--text2);
+}
+.section-hdr .ml{margin-left:auto}
+
+/* ═══════════════════════ EMPTY ═══════════════════════ */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:60px 20px;gap:12px;
+  color:var(--text3);
+}
+.empty-state .material-icons-round{font-size:52px;opacity:.3}
+.empty-state p{font-size:14px}
+
+/* ═══════════════════════ SPINNER ═══════════════════════ */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{
+  width:24px;height:24px;border:2.5px solid var(--border2);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+.loading-row{display:flex;align-items:center;justify-content:center;padding:40px;gap:12px;color:var(--text2)}
+
+/* ═══════════════════════ TOAST ═══════════════════════ */
+#toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{
+  background:var(--glass2);
+  backdrop-filter:var(--blur);
+  border:1px solid var(--border2);
+  border-radius:10px;padding:10px 18px;
+  color:var(--text);font-size:13px;
+  box-shadow:var(--shadow);
+  animation:toastIn .25s ease;
+  pointer-events:all;
+  display:flex;align-items:center;gap:8px;
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.toast.success .material-icons-round{color:var(--green)}
+.toast.error .material-icons-round{color:#ff4444}
+.toast.info .material-icons-round{color:var(--blue)}
+
+/* ═══════════════════════ OVERLAY ═══════════════════════ */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:190;display:none}
+#overlay.show{display:block}
+
+/* ═══════════════════════ MODAL ═══════════════════════ */
+.modal{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:var(--glass2);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:28px;z-index:300;width:90%;max-width:500px;
+  box-shadow:var(--shadow);
+  display:none;
+}
+.modal.show{display:block}
+.modal-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.modal-header h3{font-size:17px;font-weight:600;flex:1}
+.modal-thumb{width:100%;border-radius:var(--radius2);margin-bottom:14px;object-fit:cover;max-height:160px}
+.modal-body{display:flex;flex-direction:column;gap:12px}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+.modal-meta{font-size:12.5px;color:var(--text2);line-height:1.7}
+
+/* ═══════════════════════ SCROLLBAR ═══════════════════════ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ═══════════════════════ PLAYLIST LIST ═══════════════════════ */
+.playlist-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  transition:background .15s;cursor:pointer;
+}
+.playlist-item:hover{background:var(--surface2)}
+.playlist-item img{width:100px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0}
+.playlist-item-info .title{font-size:13.5px;font-weight:500;margin-bottom:3px}
+.playlist-item-info .sub{font-size:12px;color:var(--text2)}
+.playlist-item-actions{margin-left:auto;display:flex;gap:8px}
+
+/* ═══════════════════════ RESPONSIVE ═══════════════════════ */
+@media(max-width:768px){
+  #sidebar{width:60px}
+  .sidebar-logo .logo-text,.sidebar-logo .logo-sub,.nav-item span:not(.material-icons-round),.nav-section,.nav-badge{display:none}
+  #main{margin-left:60px}
+  #cart-panel{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<div id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">YT</div>
+    <div>
+      <div class="logo-text">YTLoader</div>
+      <div class="logo-sub">DOWNLOADER</div>
+    </div>
+  </div>
+  <div class="nav-section">Main</div>
+  <div class="nav-item active" data-view="search" onclick="setView('search',this)">
+    <span class="material-icons-round">search</span>
+    <span>Search Videos</span>
+  </div>
+  <div class="nav-item" data-view="channel" onclick="setView('channel',this)">
+    <span class="material-icons-round">subscriptions</span>
+    <span>Channels</span>
+  </div>
+  <div class="nav-item" data-view="playlist" onclick="setView('playlist',this)">
+    <span class="material-icons-round">queue_music</span>
+    <span>Playlists</span>
+  </div>
+  <div class="nav-item" data-view="url" onclick="setView('url',this)">
+    <span class="material-icons-round">link</span>
+    <span>URL Download</span>
+  </div>
+  <div class="nav-section">Downloads</div>
+  <div class="nav-item" data-view="jobs" onclick="setView('jobs',this)">
+    <span class="material-icons-round">download</span>
+    <span>Active Jobs</span>
+    <span class="nav-badge" id="jobs-badge" style="display:none">0</span>
+  </div>
+  <div class="nav-item" data-view="files" onclick="setView('files',this)">
+    <span class="material-icons-round">folder_open</span>
+    <span>Downloaded Files</span>
+  </div>
+  <div class="sidebar-bottom">
+    <button class="btn btn-ghost btn-sm" onclick="openCart()">
+      <span class="material-icons-round">shopping_cart</span>
+      Cart <span id="cart-badge2">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="topbar-title" id="topbar-title">Search Videos</div>
+    <!-- Search bar (shown on search view) -->
+    <div class="search-wrap" id="global-search">
+      <input type="text" id="search-input" placeholder="Search YouTube..." onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button onclick="doSearch()">
+        <span class="material-icons-round">search</span>
+        Search
+      </button>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn-icon" onclick="openCart()" title="Cart">
+        <span class="material-icons-round">shopping_cart</span>
+      </button>
+      <button class="btn-icon" onclick="setView('jobs', document.querySelector('[data-view=jobs]'))" title="Jobs">
+        <span class="material-icons-round">download_for_offline</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+
+    <!-- ═══ SEARCH VIEW ═══ -->
+    <div class="view active" id="view-search">
+      <div id="search-filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <div class="chip active" onclick="filterChip(this,'all')"><span class="material-icons-round">all_inclusive</span>All</div>
+        <div class="chip" onclick="filterChip(this,'short')"><span class="material-icons-round">short_text</span>Short (&lt;4min)</div>
+        <div class="chip" onclick="filterChip(this,'long')"><span class="material-icons-round">schedule</span>Long (&gt;20min)</div>
+      </div>
+      <div id="search-results" class="video-grid"></div>
+      <div id="search-empty" class="empty-state">
+        <span class="material-icons-round">video_search</span>
+        <p>Search for videos above to get started</p>
+      </div>
+    </div>
+
+    <!-- ═══ CHANNEL VIEW ═══ -->
+    <div class="view" id="view-channel">
+      <div class="dl-panel" style="margin-bottom:20px">
+        <h2><span class="material-icons-round">subscriptions</span>Channel URL or Handle</h2>
+        <div class="form-row">
+          <div class="form-group url-group">
+            <label>Channel URL / Handle</label>
+            <input class="form-control" id="channel-url-input" placeholder="https://youtube.com/@channelname or channel URL" onkeydown="if(event.key==='Enter')loadChannel()"/>
+          </div>
+          <button class="btn btn-primary" onclick="loadChannel()">
+            <span class="material-icons-round">travel_explore</span>Load Channel
+          </button>
+        </div>
+      </div>
+      <div id="channel-content" style="display:none">
+        <div class="channel-header" id="channel-header"></div>
+        <div class="section-hdr">
+          <h3>Recent Videos</h3>
+          <span class="count" id="ch-vid-count">0 videos</span>
+          <div class="ml" style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="addAllChannelToCart()">
+              <span class="material-icons-round">add_shopping_cart</span>Add All to Cart
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="downloadAllChannel()">
+              <span class="material-icons-round">download</span>Download All
+            </button>
+          </div>
+        </div>
+        <div id="channel-videos" class="video-grid"></div>
+      </div>
+      <div id="channel-empty" class="empty-state">
+        <span class="material-icons-round">subscriptions</span>
+        <p>Enter a channel URL above to browse videos</p>
+      </div>
+    </div>
+
+    <!-- ═══ PLAYLIST VIEW ═══ -->
+    <div class="view" id="view-playlist">
+      <div class="dl-panel">
+        <h2><span class="material-icons-round">queue_music</span>Playlist URL</h2>
+        <div class="form-row">
+          <div class="form-group url-group">
+            <label>Playlist URL</label>
+            <input class="form-control" id="playlist-url-input" placeholder="https://youtube.com/playlist?list=..." onkeydown="if(event.key==='Enter')loadPlaylist()"/>
+          </div>
+          <button class="btn btn-primary" onclick="loadPlaylist()">
+            <span class="material-icons-round">format_list_bulleted</span>Load Playlist
+          </button>
+        </div>
+      </div>
+      <div id="playlist-content" style="display:none">
+        <div class="dl-panel" id="playlist-header-card" style="margin-top:20px"></div>
+        <div class="glass-card" style="margin-top:4px">
+          <div id="playlist-videos"></div>
+        </div>
+      </div>
+      <div id="playlist-empty" class="empty-state">
+        <span class="material-icons-round">queue_music</span>
+        <p>Enter a playlist URL above to get started</p>
+      </div>
+    </div>
+
+    <!-- ═══ URL DOWNLOAD VIEW ═══ -->
+    <div class="view" id="view-url">
+      <div class="dl-panel">
+        <h2><span class="material-icons-round">link</span>Direct URL Download</h2>
+        <div class="form-row">
+          <div class="form-group url-group">
+            <label>Video URL(s)</label>
+            <textarea class="form-control" id="url-input" rows="3" placeholder="Paste one or multiple YouTube URLs (one per line)&#10;https://youtube.com/watch?v=...&#10;https://youtube.com/watch?v=..."></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Format</label>
+            <select class="form-control" id="url-format">
+              <option value="mp4">MP4 (Video)</option>
+              <option value="mkv">MKV (Video)</option>
+              <option value="mp3">MP3 (Audio only)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quality</label>
+            <select class="form-control" id="url-quality">
+              <option value="2160">4K / 2160p</option>
+              <option value="1080" selected>1080p Full HD</option>
+              <option value="720">720p HD</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+              <option value="best">Best Available</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content:flex-end">
+            <button class="btn btn-primary" onclick="startUrlDownload()">
+              <span class="material-icons-round">download</span>Start Download
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="dl-panel" style="margin-top:0">
+        <h2><span class="material-icons-round">info</span>Video Info Lookup</h2>
+        <div class="form-row">
+          <div class="form-group url-group">
+            <label>Video URL</label>
+            <input class="form-control" id="info-url-input" placeholder="Paste video URL to inspect..." onkeydown="if(event.key==='Enter')lookupVideo()"/>
+          </div>
+          <button class="btn btn-ghost" onclick="lookupVideo()">
+            <span class="material-icons-round">manage_search</span>Inspect
+          </button>
+        </div>
+        <div id="video-info-result" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- ═══ JOBS VIEW ═══ -->
+    <div class="view" id="view-jobs">
+      <div class="section-hdr" style="margin-bottom:20px">
+        <h3>Download Jobs</h3>
+        <div class="ml" style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="loadJobs()">
+            <span class="material-icons-round">refresh</span>Refresh
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="clearDoneJobs()">
+            <span class="material-icons-round">clear_all</span>Clear Done
+          </button>
+        </div>
+      </div>
+      <div id="jobs-list">
+        <div class="empty-state">
+          <span class="material-icons-round">download_for_offline</span>
+          <p>No active downloads</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FILES VIEW ═══ -->
+    <div class="view" id="view-files">
+      <div class="section-hdr" style="margin-bottom:20px">
+        <h3>Downloaded Files</h3>
+        <div class="ml">
+          <button class="btn btn-ghost btn-sm" onclick="loadFiles()">
+            <span class="material-icons-round">refresh</span>Refresh
+          </button>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div id="files-list">
+          <div class="empty-state">
+            <span class="material-icons-round">folder_open</span>
+            <p>No files downloaded yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══════════ CART PANEL ═══════════ -->
+<div id="overlay" onclick="closeCart()"></div>
+<div id="cart-panel">
+  <div class="cart-header">
+    <span class="material-icons-round">shopping_cart</span>
+    <h3>Download Cart</h3>
+    <span id="cart-count" style="font-size:12px;color:var(--text2)">0 videos</span>
+    <button class="btn-icon" onclick="closeCart()" style="margin-left:auto">
+      <span class="material-icons-round">close</span>
+    </button>
+  </div>
+  <div class="cart-list" id="cart-list">
+    <div class="empty-state" style="padding:40px 20px">
+      <span class="material-icons-round">add_shopping_cart</span>
+      <p>Your cart is empty</p>
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-settings">
+      <select class="form-control" id="cart-format">
+        <option value="mp4">MP4</option>
+        <option value="mkv">MKV</option>
+        <option value="mp3">MP3</option>
+      </select>
+      <select class="form-control" id="cart-quality">
+        <option value="2160">4K</option>
+        <option value="1080" selected>1080p</option>
+        <option value="720">720p</option>
+        <option value="480">480p</option>
+        <option value="360">360p</option>
+        <option value="best">Best</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="clearCart()" style="flex:1">
+        <span class="material-icons-round">delete_sweep</span>Clear
+      </button>
+      <button class="btn btn-primary" onclick="downloadCart()" style="flex:2">
+        <span class="material-icons-round">download</span>Download All
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ VIDEO MODAL ═══════════ -->
+<div id="video-modal" class="modal">
+  <div class="modal-header">
+    <span class="material-icons-round" style="color:var(--accent)">play_circle</span>
+    <h3 id="modal-title">Video Details</h3>
+    <button class="btn-icon" onclick="closeModal()" style="margin-left:auto">
+      <span class="material-icons-round">close</span>
+    </button>
+  </div>
+  <img id="modal-thumb" class="modal-thumb" src="" alt=""/>
+  <div class="modal-body">
+    <div class="modal-meta" id="modal-meta"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Format</label>
+        <select class="form-control" id="modal-format">
+          <option value="mp4">MP4</option>
+          <option value="mkv">MKV</option>
+          <option value="mp3">MP3</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quality</label>
+        <select class="form-control" id="modal-quality">
+          <option value="1080" selected>1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+          <option value="best">Best</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-ghost" onclick="addModalToCart()">
+      <span class="material-icons-round">add_shopping_cart</span>Add to Cart
+    </button>
+    <button class="btn btn-primary" onclick="downloadModal()">
+      <span class="material-icons-round">download</span>Download
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════ TOAST ═══════════ -->
+<div id="toast-wrap"></div>
+
+<script>
+// ═══════════════════════ STATE ═══════════════════════
+let cart = [];
+let currentChannelUrl = '';
+let channelVideos = [];
+let currentPlaylistUrl = '';
+let playlistVideos = [];
+let jobsMap = {};
+let jobPollInterval = null;
+let currentModalVideo = null;
+
+// ═══════════════════════ NAVIGATION ═══════════════════════
+const viewTitles = {
+  search:'Search Videos', channel:'Channels',
+  playlist:'Playlists', url:'URL Download',
+  jobs:'Download Jobs', files:'Downloaded Files'
+};
+
+function setView(name, el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent = viewTitles[name]||name;
+  const gs = document.getElementById('global-search');
+  gs.style.display = name==='search'?'flex':'none';
+  if(name==='jobs') loadJobs();
+  if(name==='files') loadFiles();
+}
+
+// init: hide search bar on non-search views
+window.addEventListener('load',()=>{
+  document.getElementById('global-search').style.display='flex';
+  startJobPoll();
+});
+
+// ═══════════════════════ SEARCH ═══════════════════════
+let searchFilter = 'all';
+let lastResults = [];
+
+function filterChip(el, val){
+  document.querySelectorAll('#search-filters .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  searchFilter = val;
+  renderSearchResults(lastResults);
+}
+
+async function doSearch(){
+  const q = document.getElementById('search-input').value.trim();
+  if(!q) return;
+  const grid = document.getElementById('search-results');
+  const empty = document.getElementById('search-empty');
+  grid.innerHTML = '<div class="loading-row"><div class="spinner"></div><span>Searching...</span></div>';
+  empty.style.display = 'none';
+  try{
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=20`);
+    const data = await res.json();
+    if(data.error){ showToast(data.error,'error'); grid.innerHTML=''; return; }
+    lastResults = data.results||[];
+    renderSearchResults(lastResults);
+  }catch(e){ showToast('Search failed','error'); grid.innerHTML=''; }
+}
+
+function renderSearchResults(results){
+  const grid = document.getElementById('search-results');
+  const empty = document.getElementById('search-empty');
+  let filtered = results;
+  if(searchFilter==='short') filtered = results.filter(v=>parseDur(v.duration)<240);
+  if(searchFilter==='long') filtered = results.filter(v=>parseDur(v.duration)>1200);
+  if(!filtered.length){
+    grid.innerHTML='';
+    empty.style.display='flex';
+    return;
+  }
+  empty.style.display='none';
+  grid.innerHTML = filtered.map(v=>videoCard(v)).join('');
+}
+
+function parseDur(s){
+  if(!s) return 0;
+  const p = s.split(':').map(Number);
+  if(p.length===3) return p[0]*3600+p[1]*60+p[2];
+  if(p.length===2) return p[0]*60+p[1];
+  return p[0]||0;
+}
+
+// ═══════════════════════ VIDEO CARD ═══════════════════════
+function videoCard(v){
+  const inCart = cart.some(c=>c.id===v.id);
+  return `<div class="video-card${inCart?' in-cart':''}" id="vc-${v.id}">
+    <div class="video-thumb" onclick="openVideoModal(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+      <img src="${v.thumbnail}" alt="" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22320%22 height=%22180%22><rect fill=%22%23222%22 width=%22320%22 height=%22180%22/></svg>'"/>
+      ${v.duration?`<span class="duration">${v.duration}</span>`:''}
+      <div class="cart-overlay"><span class="material-icons-round">check_circle</span></div>
+    </div>
+    <div class="video-info" onclick="openVideoModal(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+      <div class="title">${esc(v.title)}</div>
+      <div class="meta">
+        <span>${esc(v.channel)}</span>
+        ${v.views?`<span>${v.views}</span>`:''}
+      </div>
+    </div>
+    <div class="video-card-actions">
+      <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();toggleCart(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+        <span class="material-icons-round">${inCart?'remove_shopping_cart':'add_shopping_cart'}</span>
+        ${inCart?'Remove':'Cart'}
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();quickDownload(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+        <span class="material-icons-round">download</span>DL
+      </button>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════ CHANNEL ═══════════════════════
+async function loadChannel(){
+  const url = document.getElementById('channel-url-input').value.trim();
+  if(!url){ showToast('Enter a channel URL','error'); return; }
+  document.getElementById('channel-content').style.display='none';
+  document.getElementById('channel-empty').style.display='flex';
+  document.getElementById('channel-empty').innerHTML=`<div class="loading-row"><div class="spinner"></div><span>Loading channel...</span></div>`;
+  try{
+    const res = await fetch(`/api/channel_info?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    if(data.error){ showToast(data.error,'error'); document.getElementById('channel-empty').innerHTML=`<div class="empty-state"><span class="material-icons-round">error</span><p>${data.error}</p></div>`; return; }
+    currentChannelUrl = data.url||url;
+    channelVideos = data.videos||[];
+    renderChannelHeader(data);
+    renderChannelVideos(channelVideos);
+    document.getElementById('channel-content').style.display='block';
+    document.getElementById('channel-empty').style.display='none';
+  }catch(e){ showToast('Failed to load channel','error'); }
+}
+
+function renderChannelHeader(data){
+  const h = document.getElementById('channel-header');
+  const thumb = data.thumbnail
+    ? `<img class="ch-avatar" src="${data.thumbnail}" onerror="this.style.display='none'">`
+    : `<div class="ch-avatar-placeholder"><span class="material-icons-round" style="font-size:28px;color:#fff">account_circle</span></div>`;
+  h.innerHTML=`${thumb}<div class="ch-info">
+    <h2>${esc(data.channel||'Channel')}</h2>
+    <p>${esc((data.description||'').substring(0,120))}${data.description&&data.description.length>120?'...':''}</p>
+    <div class="ch-actions">
+      <span style="font-size:12px;color:var(--text2)">${channelVideos.length} videos loaded</span>
+    </div>
+  </div>`;
+}
+
+function renderChannelVideos(videos){
+  document.getElementById('ch-vid-count').textContent = `${videos.length} videos`;
+  document.getElementById('channel-videos').innerHTML = videos.map(v=>videoCard(v)).join('');
+}
+
+function addAllChannelToCart(){
+  let added=0;
+  channelVideos.forEach(v=>{ if(!cart.some(c=>c.id===v.id)){ cart.push(v); added++; }});
+  updateCartUI();
+  showToast(`Added ${added} videos to cart`,'success');
+  renderChannelVideos(channelVideos);
+}
+
+async function downloadAllChannel(){
+  const fmt = prompt('Format? (mp4/mkv/mp3)','mp4')||'mp4';
+  const qual = prompt('Quality? (2160/1080/720/480/360/best)','1080')||'1080';
+  await startDownload(channelVideos.map(v=>v.url), fmt, qual);
+}
+
+// ═══════════════════════ PLAYLIST ═══════════════════════
+async function loadPlaylist(){
+  const url = document.getElementById('playlist-url-input').value.trim();
+  if(!url){ showToast('Enter a playlist URL','error'); return; }
+  document.getElementById('playlist-content').style.display='none';
+  document.getElementById('playlist-empty').style.display='flex';
+  document.getElementById('playlist-empty').innerHTML=`<div class="loading-row"><div class="spinner"></div><span>Loading playlist...</span></div>`;
+  try{
+    const res = await fetch(`/api/playlist_info?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    if(data.error){ showToast(data.error,'error'); return; }
+    currentPlaylistUrl = url;
+    playlistVideos = data.videos||[];
+    renderPlaylist(data);
+    document.getElementById('playlist-content').style.display='block';
+    document.getElementById('playlist-empty').style.display='none';
+  }catch(e){ showToast('Failed to load playlist','error'); }
+}
+
+function renderPlaylist(data){
+  const hdr = document.getElementById('playlist-header-card');
+  hdr.innerHTML=`<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:6px">${esc(data.title)}</h2>
+      <p style="font-size:13px;color:var(--text2)">${data.count} videos in playlist</p>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="addAllPlaylistToCart()">
+        <span class="material-icons-round">add_shopping_cart</span>Add All to Cart
+      </button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select class="form-control" id="pl-format" style="padding:7px 10px">
+          <option value="mp4">MP4</option><option value="mkv">MKV</option><option value="mp3">MP3</option>
+        </select>
+        <select class="form-control" id="pl-quality" style="padding:7px 10px">
+          <option value="2160">4K</option>
+          <option value="1080" selected>1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+          <option value="best">Best</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="downloadWholePlaylist()">
+          <span class="material-icons-round">download</span>Download All
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  const list = document.getElementById('playlist-videos');
+  list.innerHTML = playlistVideos.map((v,i)=>`
+    <div class="playlist-item">
+      <span style="font-size:12px;color:var(--text3);width:24px;text-align:right;flex-shrink:0">${i+1}</span>
+      <img src="${v.thumbnail}" alt="" loading="lazy" style="width:100px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'"/>
+      <div class="playlist-item-info">
+        <div class="title">${esc(v.title)}</div>
+        <div class="sub">${esc(v.channel||'')} ${v.duration?'· '+v.duration:''}</div>
+      </div>
+      <div class="playlist-item-actions">
+        <button class="btn-icon" title="Add to cart" onclick="toggleCart(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+          <span class="material-icons-round">${cart.some(c=>c.id===v.id)?'check':'add_shopping_cart'}</span>
+        </button>
+        <button class="btn-icon" title="Download" onclick="quickDownload(${JSON.stringify(v).replace(/"/g,'&quot;')})">
+          <span class="material-icons-round">download</span>
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+function addAllPlaylistToCart(){
+  let added=0;
+  playlistVideos.forEach(v=>{ if(!cart.some(c=>c.id===v.id)){ cart.push(v); added++; }});
+  updateCartUI();
+  showToast(`Added ${added} videos to cart`,'success');
+}
+
+async function downloadWholePlaylist(){
+  const fmt = document.getElementById('pl-format').value;
+  const qual = document.getElementById('pl-quality').value;
+  await startDownload([currentPlaylistUrl], fmt, qual);
+}
+
+// ═══════════════════════ URL DOWNLOAD ═══════════════════════
+async function startUrlDownload(){
+  const raw = document.getElementById('url-input').value.trim();
+  if(!raw){ showToast('Enter at least one URL','error'); return; }
+  const urls = raw.split('\n').map(u=>u.trim()).filter(u=>u);
+  const fmt = document.getElementById('url-format').value;
+  const qual = document.getElementById('url-quality').value;
+  await startDownload(urls, fmt, qual);
+}
+
+async function lookupVideo(){
+  const url = document.getElementById('info-url-input').value.trim();
+  if(!url){ showToast('Enter a video URL','error'); return; }
+  const res_el = document.getElementById('video-info-result');
+  res_el.style.display='block';
+  res_el.innerHTML='<div class="loading-row"><div class="spinner"></div><span>Loading info...</span></div>';
+  try{
+    const res = await fetch(`/api/video_info?url=${encodeURIComponent(url)}`);
+    const data = await res.json();
+    if(data.error){ res_el.innerHTML=`<p style="color:#ff4444;padding:10px">${data.error}</p>`; return; }
+    res_el.innerHTML=`
+      <div style="display:flex;gap:14px;margin-top:10px;flex-wrap:wrap">
+        <img src="${data.thumbnail}" style="width:160px;height:90px;object-fit:cover;border-radius:8px;flex-shrink:0"/>
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px">${esc(data.title)}</div>
+          <div style="font-size:12.5px;color:var(--text2);line-height:1.8">
+            Channel: ${esc(data.channel)}<br>
+            Duration: ${data.duration}<br>
+            Views: ${data.views||'N/A'}<br>
+            Available formats: ${data.formats.map(f=>`${f.height}p`).join(', ')||'N/A'}
+          </div>
+        </div>
+      </div>`;
+  }catch(e){ res_el.innerHTML=`<p style="color:#ff4444;padding:10px">Failed to load info</p>`; }
+}
+
+// ═══════════════════════ DOWNLOAD CORE ═══════════════════════
+async function startDownload(urls, fmt, qual){
+  try{
+    const res = await fetch('/api/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({urls,format:fmt,quality:qual})
+    });
+    const data = await res.json();
+    if(data.error){ showToast(data.error,'error'); return; }
+    jobsMap[data.job_id]={status:'queued',progress:0};
+    showToast(`Download started! Job: ${data.job_id}`,'success');
+    setView('jobs', document.querySelector('[data-view=jobs]'));
+    updateJobsBadge();
+  }catch(e){ showToast('Failed to start download','error'); }
+}
+
+async function quickDownload(v){
+  const fmt = 'mp4', qual = '1080';
+  await startDownload([v.url], fmt, qual);
+}
+
+// ═══════════════════════ CART ═══════════════════════
+function toggleCart(v){
+  const idx = cart.findIndex(c=>c.id===v.id);
+  if(idx>=0){
+    cart.splice(idx,1);
+    showToast('Removed from cart','info');
+  } else {
+    cart.push(v);
+    showToast('Added to cart','success');
+  }
+  updateCartUI();
+  // update all rendered cards
+  const el = document.getElementById('vc-'+v.id);
+  if(el){
+    const inCart = cart.some(c=>c.id===v.id);
+    el.classList.toggle('in-cart',inCart);
+    const btn = el.querySelector('.video-card-actions .btn-ghost');
+    if(btn) btn.innerHTML=`<span class="material-icons-round">${inCart?'remove_shopping_cart':'add_shopping_cart'}</span> ${inCart?'Remove':'Cart'}`;
+  }
+}
+
+function updateCartUI(){
+  const count = cart.length;
+  document.getElementById('cart-count').textContent=`${count} video${count!==1?'s':''}`;
+  document.getElementById('cart-badge2').textContent=count;
+  const topBtn = document.querySelector('[onclick="openCart()"]');
+  const list = document.getElementById('cart-list');
+  if(!count){
+    list.innerHTML=`<div class="empty-state" style="padding:40px 20px"><span class="material-icons-round">add_shopping_cart</span><p>Your cart is empty</p></div>`;
+    return;
+  }
+  list.innerHTML = cart.map((v,i)=>`
+    <div class="cart-item">
+      <img src="${v.thumbnail}" alt="" onerror="this.style.display='none'"/>
+      <div class="cart-item-info">
+        <div class="title">${esc(v.title)}</div>
+        <div class="ch">${esc(v.channel||'')}</div>
+      </div>
+      <button class="btn-icon danger" onclick="removeFromCart(${i})">
+        <span class="material-icons-round">close</span>
+      </button>
+    </div>`).join('');
+}
+
+function removeFromCart(i){
+  cart.splice(i,1);
+  updateCartUI();
+}
+
+function clearCart(){
+  cart=[];
+  updateCartUI();
+  showToast('Cart cleared','info');
+}
+
+async function downloadCart(){
+  if(!cart.length){ showToast('Cart is empty','error'); return; }
+  const fmt = document.getElementById('cart-format').value;
+  const qual = document.getElementById('cart-quality').value;
+  const urls = cart.map(v=>v.url);
+  closeCart();
+  await startDownload(urls, fmt, qual);
+}
+
+function openCart(){
+  document.getElementById('cart-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  updateCartUI();
+}
+
+function closeCart(){
+  document.getElementById('cart-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ═══════════════════════ MODAL ═══════════════════════
+function openVideoModal(v){
+  currentModalVideo = v;
+  document.getElementById('modal-title').textContent = v.title||'Video';
+  document.getElementById('modal-thumb').src = v.thumbnail||'';
+  document.getElementById('modal-meta').innerHTML=`
+    <b>Channel:</b> ${esc(v.channel||'')}<br>
+    <b>Duration:</b> ${v.duration||'N/A'}<br>
+    <b>Views:</b> ${v.views||'N/A'}`;
+  document.getElementById('video-modal').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('video-modal').classList.remove('show');
+  if(!document.getElementById('cart-panel').classList.contains('open'))
+    document.getElementById('overlay').classList.remove('show');
+}
+
+function addModalToCart(){
+  if(!currentModalVideo) return;
+  toggleCart(currentModalVideo);
+  closeModal();
+}
+
+async function downloadModal(){
+  if(!currentModalVideo) return;
+  const fmt = document.getElementById('modal-format').value;
+  const qual = document.getElementById('modal-quality').value;
+  closeModal();
+  await startDownload([currentModalVideo.url], fmt, qual);
+}
+
+// ═══════════════════════ JOBS ═══════════════════════
+function startJobPoll(){
+  if(jobPollInterval) clearInterval(jobPollInterval);
+  jobPollInterval = setInterval(async()=>{
+    try{
+      const res = await fetch('/api/jobs');
+      const data = await res.json();
+      jobsMap = data;
+      updateJobsBadge();
+      const v = document.getElementById('view-jobs');
+      if(v && v.classList.contains('active')) renderJobs(data);
+    }catch(e){}
+  }, 1500);
+}
+
+async function loadJobs(){
+  try{
+    const res = await fetch('/api/jobs');
+    const data = await res.json();
+    jobsMap = data;
+    renderJobs(data);
+    updateJobsBadge();
+  }catch(e){}
+}
+
+function updateJobsBadge(){
+  const active = Object.values(jobsMap).filter(j=>j.status==='downloading'||j.status==='queued'||j.status==='processing').length;
+  const badge = document.getElementById('jobs-badge');
+  if(active>0){ badge.textContent=active; badge.style.display='inline-block'; }
+  else badge.style.display='none';
+}
+
+function renderJobs(data){
+  const list = document.getElementById('jobs-list');
+  const entries = Object.entries(data);
+  if(!entries.length){
+    list.innerHTML=`<div class="empty-state"><span class="material-icons-round">download_for_offline</span><p>No active downloads</p></div>`;
+    return;
+  }
+  entries.sort((a,b)=>{ const order={downloading:0,processing:1,queued:2,done:3,error:4}; return (order[a[1].status]||5)-(order[b[1].status]||5); });
+  list.innerHTML = entries.map(([id,job])=>{
+    const files = (job.files||[]).map(f=>`
+      <div class="job-file">
+        <span class="material-icons-round">${fileIcon(f)}</span>
+        <span class="fname">${esc(f)}</span>
+        <a href="/downloads/${encodeURIComponent(f)}" class="btn btn-ghost btn-sm" style="text-decoration:none">
+          <span class="material-icons-round">download</span>
+        </a>
+      </div>`).join('');
+    return `<div class="job-card">
+      <div class="job-header">
+        <span class="job-id">#${id}</span>
+        <span class="job-status ${job.status}">${job.status.toUpperCase()}</span>
+        ${job.count?`<span style="font-size:12px;color:var(--text2);margin-left:4px">${job.count} file${job.count!==1?'s':''}</span>`:''}
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${job.progress||0}%"></div></div>
+      <div class="job-meta">
+        <span><span class="material-icons-round">percent</span>${job.progress||0}%</span>
+        <span><span class="material-icons-round">speed</span>${job.speed||'--'}</span>
+        <span><span class="material-icons-round">timer</span>${job.eta||'--'}</span>
+        ${job.error?`<span style="color:#ff4444"><span class="material-icons-round">error</span>${esc(job.error.substring(0,60))}</span>`:''}
+      </div>
+      ${files?`<div class="job-files">${files}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function clearDoneJobs(){
+  // Clear from display (server side just keeps them in memory)
+  for(const k of Object.keys(jobsMap)){
+    if(jobsMap[k].status==='done'||jobsMap[k].status==='error') delete jobsMap[k];
+  }
+  renderJobs(jobsMap);
+}
+
+function fileIcon(fname){
+  const ext = fname.split('.').pop().toLowerCase();
+  if(['mp4','mkv','webm'].includes(ext)) return 'video_file';
+  if(['mp3','aac','ogg','flac'].includes(ext)) return 'audio_file';
+  return 'insert_drive_file';
+}
+
+// ═══════════════════════ FILES ═══════════════════════
+async function loadFiles(){
+  const list = document.getElementById('files-list');
+  list.innerHTML='<div class="loading-row"><div class="spinner"></div><span>Loading files...</span></div>';
+  try{
+    const res = await fetch('/api/files');
+    const data = await res.json();
+    const files = data.files||[];
+    if(!files.length){
+      list.innerHTML=`<div class="empty-state"><span class="material-icons-round">folder_open</span><p>No files downloaded yet</p></div>`;
+      return;
+    }
+    list.innerHTML = files.map(f=>{
+      const ext = f.name.split('.').pop().toLowerCase();
+      const cls = ['mp4','mkv','mp3','webm'].includes(ext)?`ext-${ext}`:'ext-default';
+      return `<div class="file-row">
+        <span class="material-icons-round">${fileIcon(f.name)}</span>
+        <span class="fname">${esc(f.name)}</span>
+        <span class="file-ext ${cls}">${ext}</span>
+        <span class="fsize">${f.size}</span>
+        <a href="/downloads/${encodeURIComponent(f.name)}" class="btn-icon" title="Download" style="text-decoration:none">
+          <span class="material-icons-round">download</span>
+        </a>
+        <button class="btn-icon danger" title="Delete" onclick="deleteFile('${esc(f.name)}')">
+          <span class="material-icons-round">delete</span>
+        </button>
+      </div>`;
+    }).join('');
+  }catch(e){ list.innerHTML='<p style="padding:20px;color:#ff4444">Failed to load files</p>'; }
+}
+
+async function deleteFile(name){
+  if(!confirm(`Delete "${name}"?`)) return;
+  try{
+    await fetch('/api/delete_file',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+    showToast('File deleted','info');
+    loadFiles();
+  }catch(e){ showToast('Delete failed','error'); }
+}
+
+// ═══════════════════════ TOAST ═══════════════════════
+function showToast(msg, type='info'){
+  const icon = type==='success'?'check_circle':type==='error'?'error':'info';
+  const t = document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span class="material-icons-round">${icon}</span>${esc(msg)}`;
+  document.getElementById('toast-wrap').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+
+// ═══════════════════════ UTILS ═══════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    closeCart();
+    closeModal();
+  }
+});
+</script>
+</body>
+</html>
