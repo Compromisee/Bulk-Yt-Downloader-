@@ -1,6 +1,6 @@
-# YTLoader — YouTube Downloader
+# Bulk Yt Downlaoder YouTube Downloader
 
-A sleek, glassmorphic YouTube-style bulk downloader built with Flask + yt-dlp.
+A sleek, YouTube-style bulk downloader built with Flask + yt-dlp.
 
 ## Features
 - **Search Videos** — Search YouTube directly, add to cart or download instantly
@@ -32,3 +32,4 @@ Install ffmpeg:
 - **macOS:** `brew install ffmpeg`
 - **Ubuntu/Debian:** `sudo apt install ffmpeg`
 - **Windows:** Download from https://ffmpeg.org
+Plz follow my progress!!
